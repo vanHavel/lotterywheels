@@ -44,10 +44,28 @@ template <int N> std::unordered_map<std::bitset<N>, uint32_t> computeInverseMapp
     return res;
 }
 
-int main() {
-    auto combs = computeAllCombinations<5>(3, 0);
-    auto inv = computeInverseMapping<5>(combs);
-    for (auto iter = inv.begin(); iter != inv.end(); ++iter) {
-        std::cout << iter->first << " -> " << iter->second << "\n";
+template <int N> bool verifyTCoverage(std::vector<std::bitset<N>> samples, std::vector<std::bitset<N>> cover, int t) {
+    for (auto sampleIter = samples.begin(); sampleIter != samples.end(); ++sampleIter) {
+        bool found = false;
+        for (auto coverIter = cover.begin(); coverIter != cover.end(); ++coverIter) {
+            auto intersection = *sampleIter & *coverIter;
+            if (intersection.count() >= t) {
+                found = true;
+                break;
+            }
+
+        }
+        if (!found) {
+            return false;
+        }
     }
+    return true;
+}
+
+int main() {
+    auto combs3 = computeAllCombinations<5>(3);
+    auto combs2 = {
+            std::bitset<5>("11000"), std::bitset<5>("00011")
+    };
+    std::cout << verifyTCoverage<5>(combs3, combs2, 2);
 }
