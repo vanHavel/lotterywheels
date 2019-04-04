@@ -12,6 +12,8 @@ std::vector<std::vector<int32_t>> computeBinomialCoefficients(int n);
 
 template <int N> std::vector<std::bitset<N>> computeAllCombinations(int k);
 
+template <int N> std::vector<std::bitset<N>> computeSubCombinations(std::bitset<N> set, int k);
+
 #include "../src/combinatorics.tpp"
 
 #endif //LOTTERY_COMBINATORICS_H

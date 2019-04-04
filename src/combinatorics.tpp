@@ -5,23 +5,28 @@
 #ifndef LOTTERY_COMBINATORICS_TPP
 #define LOTTERY_COMBINATORICS_TPP
 
-template <int N> std::vector<std::bitset<N>> computeAllCombinations(int k, int from) {
+template <int N> std::vector<std::bitset<N>> computeSubCombinations(std::bitset<N> set, int k, int from) {
     if (k == 0) { return {std::bitset<N>()}; }
     std::vector<std::bitset<N>> combinations;
     for (int i = from; i < N - k + 1; ++i) {
-        auto subCombinations = computeAllCombinations<N>(k - 1, i + 1);
+        if (!set.test((std::size_t) i)) { continue; }
+        auto subCombinations = computeSubCombinations<N>(set, k - 1, i + 1);
         std::transform(
                 subCombinations.begin(),
                 subCombinations.end(),
                 std::back_inserter(combinations),
-                [i](auto set) { set[i] = true; return set; }
+                [i](auto subSet) { subSet[i] = true; return subSet; }
         );
     }
     return combinations;
 }
 
+template <int N> std::vector<std::bitset<N>> computeSubCombinations(std::bitset<N> set, int k) {
+    return computeSubCombinations<N>(set, k, 0);
+}
+
 template <int N> std::vector<std::bitset<N>> computeAllCombinations(int k) {
-    return computeAllCombinations<N>(k, 0);
+    return computeSubCombinations<N>(std::bitset<N>().flip(), k);
 }
 
 #endif //LOTTERY_COMBINATORICS_TPP
