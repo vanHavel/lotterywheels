@@ -13,9 +13,12 @@
 #define CONSTANT_K 3
 #define CONSTANT_P 3
 #define CONSTANT_T 2
-#define CONSTANT_C 1
+#define COVER_SIZE 1
+#define INITIAL_TEMPERATURE 1.0
+#define TEMPERATURE_DECAY 0.99
+#define ITERATIONS_PER_TEMPERATURE 100
 
-template <uint32_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInverseMapping(std::vector<std::bitset<N>> vec) {
+template <uint8_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInverseMapping(std::vector<std::bitset<N>> vec) {
     std::unordered_map<std::bitset<N>, uint32_t> res;
     for (uint32_t i = 0; i < vec.size(); ++i) {
         res[vec[i]] = i;
@@ -23,38 +26,13 @@ template <uint32_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInvers
     return res;
 }
 
-std::vector<uint32_t> computeDrawCoverage(
-            const std::vector<uint32_t> &cover,
-            const std::vector<std::vector<uint32_t>> &ticketToGroup,
-            const std::vector<std::vector<uint32_t>> &groupToDraw,
-            uint32_t numberOfDraws
-) {
-    std::vector<uint32_t> coverage(numberOfDraws, 0);
-    for (uint32_t coverIter : cover) {
-        for (uint32_t groupIter : ticketToGroup[coverIter]) {
-            for (uint32_t drawIter : groupToDraw[groupIter]) {
-                coverage[drawIter]++;
-            }
-        }
-    }
-    return coverage;
-}
-
-uint32_t computeUncoveredDrawCount(std::vector<uint32_t> coverage) {
-    uint32_t uncovered = 0;
-    for (uint32_t coverCount : coverage) {
-        if (coverCount == 0) { uncovered++; }
-    }
-    return uncovered;
-}
-
 int main() {
-    static_assert(CONSTANT_N > 0 && CONSTANT_K > 0 && CONSTANT_T > 0 && CONSTANT_P > 0 && CONSTANT_C > 0);
+    static_assert(CONSTANT_N > 0 && CONSTANT_K > 0 && CONSTANT_T > 0 && CONSTANT_P > 0 && COVER_SIZE > 0);
     static_assert(CONSTANT_K <= CONSTANT_N && CONSTANT_P <= CONSTANT_N && CONSTANT_T <= CONSTANT_N);
     static_assert(CONSTANT_T <= CONSTANT_K && CONSTANT_T <= CONSTANT_P);
 
     const auto binomialCoefficients = computeBinomialCoefficients(CONSTANT_N);
-    assert (CONSTANT_C <= binomialCoefficients[CONSTANT_N][CONSTANT_K]);
+    assert (COVER_SIZE <= binomialCoefficients[CONSTANT_N][CONSTANT_K]);
 
     const auto allDraws = computeAllCombinations<CONSTANT_N>(CONSTANT_P);
     const auto allTickets = computeAllCombinations<CONSTANT_N>(CONSTANT_K);
@@ -70,11 +48,13 @@ int main() {
     std::random_device randomDevice;
     std::mt19937 generator(randomDevice());
     std::uniform_int_distribution<uint32_t> ticketDistribution(0, (uint32_t) allTickets.size() - 1);
-    std::uniform_int_distribution<uint32_t> coverDistribution(0, CONSTANT_C - 1);
+    std::uniform_int_distribution<uint32_t> coverDistribution(0, COVER_SIZE - 1);
     std::uniform_int_distribution<uint32_t> ticketMemberDistribution(0, CONSTANT_K - 1);
+    std::uniform_int_distribution<uint32_t> universeDistribution(0, CONSTANT_N - 1);
+    std::uniform_real_distribution<double> uniformDistribution(0, 1);
 
     std::unordered_set<uint32_t> initialCoverSet;
-    while (initialCoverSet.size() < CONSTANT_C) {
+    while (initialCoverSet.size() < COVER_SIZE) {
         uint32_t ticketID = ticketDistribution(generator);
         initialCoverSet.insert(ticketID);
     }
@@ -82,6 +62,42 @@ int main() {
     std::vector<uint32_t> coverage = computeDrawCoverage(currentCover, ticketToGroup, groupToDraw, (uint32_t) allDraws.size());
     uint32_t uncovered = computeUncoveredDrawCount(coverage);
 
-    return 0;
+    bool done = false;
+    double temperature = INITIAL_TEMPERATURE;
+    while (!done) {
+        for (int i = 0; i < ITERATIONS_PER_TEMPERATURE; ++i) {
+            uint32_t oldCost = uncovered;
+            uint32_t pickedTicketIndex = coverDistribution(generator);
+            uint32_t pickedMemberIndex = ticketMemberDistribution(generator);
+            uint32_t pickedTicketID = currentCover[pickedTicketIndex];
+
+            auto pickedTicketSet = allTickets[pickedTicketID];
+            auto reducedTicketSet = removeIthMember(pickedTicketSet, pickedMemberIndex);
+            auto newTicketSet = addRandomMember(reducedTicketSet, universeDistribution, generator);
+            uint32_t newTicketID = ticketToId[newTicketSet];
+
+            uncovered += removeTicketFromCover(coverage, pickedTicketID);
+            uncovered -= addTicketToCover(coverage, newTicketID);
+            currentCover[pickedTicketIndex] = newTicketID;
+
+            assert (uncovered >= 0);
+            if (uncovered == 0) {
+                break;
+            }
+            else if (uncovered > oldCost) {
+                uint32_t delta = uncovered - oldCost;
+                double probability = exp(-((double) delta) / temperature);
+                double probe = uniformDistribution(generator);
+                if (probe > probability) {
+                    // undo move
+                    uncovered += removeTicketFromCover(coverage, newTicketID);
+                    uncovered -= addTicketToCover(coverage, pickedTicketID);
+                    currentCover[pickedTicketIndex] = pickedTicketID;
+                }
+            }
+        }
+        temperature *= TEMPERATURE_DECAY;
+        done = true;
+    }
 
 }
