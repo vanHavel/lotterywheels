@@ -4,8 +4,8 @@
 
 #include "combinatorics.h"
 
-std::vector<std::vector<int32_t>> computeBinomialCoefficients(int n) {
-    std::vector<std::vector<int32_t>> coefficients((std::size_t) n+1, std::vector<int32_t>((std::size_t) n+1, 0));
+std::vector<std::vector<uint32_t>> computeBinomialCoefficients(int n) {
+    std::vector<std::vector<uint32_t>> coefficients((std::size_t) n+1, std::vector<uint32_t>((std::size_t) n+1, 0));
     for (int i = 0; i <= n; ++i) {
         coefficients[i][0] = 1;
         coefficients[i][i] = 1;

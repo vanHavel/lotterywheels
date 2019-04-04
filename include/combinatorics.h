@@ -8,11 +8,11 @@
 #include <bitset>
 #include <vector>
 
-std::vector<std::vector<int32_t>> computeBinomialCoefficients(int n);
+std::vector<std::vector<uint32_t>> computeBinomialCoefficients(int n);
 
-template <int N> std::vector<std::bitset<N>> computeAllCombinations(int k);
+template <uint8_t N> std::vector<std::bitset<N>> computeAllCombinations(int k);
 
-template <int N> std::vector<std::bitset<N>> computeSubCombinations(std::bitset<N> set, int k);
+template <uint8_t N> std::vector<std::bitset<N>> computeSubCombinations(const std::bitset<N> &set, int k);
 
 #include "../src/combinatorics.tpp"
 
