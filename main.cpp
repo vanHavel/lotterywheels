@@ -13,7 +13,7 @@
 #define CONSTANT_K 3
 #define CONSTANT_P 3
 #define CONSTANT_T 2
-#define CONSTANT_C 100
+#define CONSTANT_C 1
 
 template <uint32_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInverseMapping(std::vector<std::bitset<N>> vec) {
     std::unordered_map<std::bitset<N>, uint32_t> res;
@@ -21,6 +21,31 @@ template <uint32_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInvers
         res[vec[i]] = i;
     }
     return res;
+}
+
+std::vector<uint32_t> computeDrawCoverage(
+            const std::vector<uint32_t> &cover,
+            const std::vector<std::vector<uint32_t>> &ticketToGroup,
+            const std::vector<std::vector<uint32_t>> &groupToDraw,
+            uint32_t numberOfDraws
+) {
+    std::vector<uint32_t> coverage(numberOfDraws, 0);
+    for (uint32_t coverIter : cover) {
+        for (uint32_t groupIter : ticketToGroup[coverIter]) {
+            for (uint32_t drawIter : groupToDraw[groupIter]) {
+                coverage[drawIter]++;
+            }
+        }
+    }
+    return coverage;
+}
+
+uint32_t computeUncoveredDrawCount(std::vector<uint32_t> coverage) {
+    uint32_t uncovered = 0;
+    for (uint32_t coverCount : coverage) {
+        if (coverCount == 0) { uncovered++; }
+    }
+    return uncovered;
 }
 
 int main() {
@@ -53,7 +78,10 @@ int main() {
         uint32_t ticketID = ticketDistribution(generator);
         initialCoverSet.insert(ticketID);
     }
-    std::vector<uint32_t> initialCover(initialCoverSet.begin(), initialCoverSet.end());
+    std::vector<uint32_t> currentCover(initialCoverSet.begin(), initialCoverSet.end());
+    std::vector<uint32_t> coverage = computeDrawCoverage(currentCover, ticketToGroup, groupToDraw, (uint32_t) allDraws.size());
+    uint32_t uncovered = computeUncoveredDrawCount(coverage);
 
+    return 0;
 
 }
