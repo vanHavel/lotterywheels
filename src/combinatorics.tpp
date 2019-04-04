@@ -7,6 +7,7 @@
 
 template <uint8_t N> std::vector<std::bitset<N>> computeSubCombinations(const std::vector<uint8_t> &setBits, int k, int from) {
     if (k == 0) { return {std::bitset<N>()}; }
+    //TODO the size of the vector is actually known by a binomial coefficient
     std::vector<std::bitset<N>> combinations;
     for (int i = from; i < setBits.size() - k + 1; ++i) {
         auto subCombinations = computeSubCombinations<N>(setBits, k - 1, i + 1);
