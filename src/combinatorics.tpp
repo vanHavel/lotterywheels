@@ -33,4 +33,24 @@ template <uint8_t N> std::vector<std::bitset<N>> computeAllCombinations(int k) {
     return computeSubCombinations<N>(std::bitset<N>().flip(), k);
 }
 
+template <uint8_t N> std::vector<std::bitset<N>> computeSuperCombinations(const std::bitset<N> &set, int k) {
+    std::vector<uint8_t> unsetBits;
+    for (uint8_t i = 0; i < N; ++i) {
+        if (!set[i]) { unsetBits.push_back(i); }
+    }
+    assert(unsetBits.size() >= k);
+    auto extensions = computeSubCombinations<N>(unsetBits, k, 0);
+
+    std::vector<std::bitset<N>> combinations;
+    std::transform(
+            extensions.begin(),
+            extensions.end(),
+            std::back_inserter(combinations),
+            [set](auto extension) {return set | extension; }
+    );
+
+    return combinations;
+
+}
+
 #endif //LOTTERY_COMBINATORICS_TPP

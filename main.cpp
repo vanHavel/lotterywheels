@@ -33,8 +33,7 @@ template <int N> bool verifyTCoverage(std::vector<std::bitset<N>> samples, std::
 }
 
 int main() {
-    //auto combs = computeAllCombinations<5>(3);
-    auto combs = computeSubCombinations<5>(std::bitset<5>("11101"), 3);
+    auto combs = computeSuperCombinations<5>(std::bitset<5>("00000"), 3);
     for(auto i = combs.begin(); i != combs.end(); ++i) {
         std::cout << *i << "\n";
     }
