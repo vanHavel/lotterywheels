@@ -13,26 +13,20 @@ template <uint8_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInverse
     return res;
 }
 
-template <uint8_t N> std::bitset<N> removeIthMember(const std::bitset<N> bitset, int index) {
+template <uint8_t N> uint8_t getIthMember(const std::bitset<N> bitset, int index) {
     int seen = 0;
     uint8_t i;
     for (i = 0; i < N; ++i) {
        if (bitset[i]) {
-           if (seen == index) {
-               break;
-           }
-           else {
-               seen++;
-           }
+           if (seen == index) { break; }
+           else { seen++; }
        }
     }
     assert (i < N);
-    auto res = bitset;
-    res.reset(i);
-    return res;
+    return i;
 }
 
-template <uint8_t N> std::bitset<N> addRandomMember(
+template <uint8_t N> uint8_t getNewRandomMember(
         const std::bitset<N> bitset,
         std::uniform_int_distribution<uint8_t> universeDistribution,
         std::mt19937 &generator
@@ -41,9 +35,7 @@ template <uint8_t N> std::bitset<N> addRandomMember(
     do {
         newBit = universeDistribution(generator);
     } while (bitset.test(newBit));
-    auto res = bitset;
-    res.set(newBit);
-    return res;
+    return newBit;
 }
 
-#endif //LOTTERY_COMBINATORICS_TPP
+#endif //LOTTERY_UTILS_TPP

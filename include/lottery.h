@@ -9,10 +9,19 @@
 #include <unordered_map>
 #include <vector>
 
-template <uint32_t N> std::vector<std::vector<uint32_t>> computeDrawToGroupEdges(
-        const std::vector<std::bitset<N>> &draws,
+template <uint8_t N> std::vector<std::vector<uint32_t>> computeTicketToGroupEdges(
+        const std::vector<std::bitset<N>> &tickets,
         int t,
-        const std::unordered_map<std::bitset<N>, uint32_t> &groupToId
+        const std::unordered_map<std::bitset<N>, uint32_t> &groupToId,
+        uint32_t groupsPerTicket
+);
+
+template <uint8_t N> std::vector<std::vector<uint32_t>> computeGroupToDrawEdges(
+        const std::vector<std::bitset<N>> &groups,
+        int p,
+        int t,
+        const std::unordered_map<std::bitset<N>, uint32_t> &drawToId,
+        uint32_t drawsPerGroup
 );
 
 template <uint8_t N> bool verifyTCoverage(

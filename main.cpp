@@ -10,16 +10,17 @@
 #include "lottery.h"
 #include "utils.h"
 
-#define CONSTANT_N 27
+#define CONSTANT_N 49
 #define CONSTANT_K 6
-#define CONSTANT_P 4
+#define CONSTANT_P 6
 #define CONSTANT_T 3
-#define COVER_SIZE 100
-#define INITIAL_TEMPERATURE 5
+#define COVER_SIZE 300
+#define INITIAL_TEMPERATURE 100.0
 #define TEMPERATURE_DECAY 0.99
 #define TEMPERATURES_WITHOUT_IMPROVEMENT 10
-#define ITERATION_MULTIPLIER 20
+#define ITERATION_MULTIPLIER 1
 #define NUMBER_OF_RUNS 10
+#define MINIMUM_TEMPERATURE 0.1
 
 int main() {
     static_assert(CONSTANT_N > 0 && CONSTANT_K > 0 && CONSTANT_T > 0 && CONSTANT_P > 0 && COVER_SIZE > 0);
@@ -39,9 +40,11 @@ int main() {
     const auto groupToId = computeInverseMapping<CONSTANT_N>(allGroups);
 
     std::cerr << "Computing ticket to group relation..." << std::endl;
-    const auto ticketToGroup = computeTicketToGroupEdges<CONSTANT_N>(allTickets, CONSTANT_T, groupToId);
+    uint32_t groupsPerTicket = binomialCoefficients[CONSTANT_K][CONSTANT_T];
+    const auto ticketToGroup = computeTicketToGroupEdges<CONSTANT_N>(allTickets, CONSTANT_T, groupToId, groupsPerTicket);
     std::cerr << "Computing group to draw relation..." << std::endl;
-    const auto groupToDraw = computeGroupToDrawEdges<CONSTANT_N>(allGroups, CONSTANT_P, CONSTANT_T, drawToId);
+    uint32_t drawsPerGroup = binomialCoefficients[CONSTANT_N - CONSTANT_T][CONSTANT_P - CONSTANT_T];
+    const auto groupToDraw = computeGroupToDrawEdges<CONSTANT_N>(allGroups, CONSTANT_P, CONSTANT_T, drawToId, drawsPerGroup);
 
     std::random_device randomDevice;
     std::mt19937 generator(randomDevice());
@@ -82,9 +85,11 @@ int main() {
                 uint32_t pickedTicketID = currentCover[pickedTicketIndex];
 
                 auto pickedTicketSet = allTickets[pickedTicketID];
-                auto reducedTicketSet = removeIthMember<CONSTANT_N>(pickedTicketSet, pickedMemberIndex);
-                //TODO this could add the same member removed before
-                auto newTicketSet = addRandomMember<CONSTANT_N>(reducedTicketSet, universeDistribution, generator);
+                uint8_t memberBit = getIthMember<CONSTANT_N>(pickedTicketSet, pickedMemberIndex);
+                uint8_t newMemberBit = getNewRandomMember<CONSTANT_N>(pickedTicketSet, universeDistribution, generator);
+                auto newTicketSet = pickedTicketSet;
+                newTicketSet.reset(memberBit);
+                newTicketSet.set(newMemberBit);
                 uint32_t newTicketID = ticketToId.at(newTicketSet);
 
                 uncovered += removeTicketFromCover(coverage, pickedTicketID, ticketToGroup, groupToDraw);
@@ -109,12 +114,14 @@ int main() {
                 }
             }
             double badMoveAcceptanceRatio = ((double) badMovesAccepted) / ((double) badMoves);
-            double badMovesRatio = ((double) badMoves) / ((double) iterationsPerTemperature);
+            double badMoveRatio = ((double) badMoves) / ((double) iterationsPerTemperature);
             std::cerr << "Temperature: " << temperature <<
                       ", Cost: " << uncovered <<
                       ", Bad Moves Acceptance: " << badMoveAcceptanceRatio <<
+                      ", Bad Moves Ratio: " << badMoveRatio <<
                       std::endl;
             temperature *= TEMPERATURE_DECAY;
+            temperature = std::max(temperature, MINIMUM_TEMPERATURE);
             temperaturesWithoutImprovement = (uncovered >= uncoveredBefore ? temperaturesWithoutImprovement + 1 : 0);
         } while (uncovered > 0 && temperaturesWithoutImprovement <= TEMPERATURES_WITHOUT_IMPROVEMENT);
         if (uncovered < bestUncovered) {
