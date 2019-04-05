@@ -4,27 +4,51 @@
 
 #include "lottery.h"
 
-std::vector<uint32_t> computeDrawCoverage(
+uint32_t computeDrawCoverage(
         const std::vector<uint32_t> &cover,
         const std::vector<std::vector<uint32_t>> &ticketToGroup,
         const std::vector<std::vector<uint32_t>> &groupToDraw,
-        uint32_t numberOfDraws
+        std::vector<uint32_t> &coverage
 ) {
-    std::vector<uint32_t> coverage(numberOfDraws, 0);
-    for (uint32_t coverIter : cover) {
-        for (uint32_t groupIter : ticketToGroup[coverIter]) {
-            for (uint32_t drawIter : groupToDraw[groupIter]) {
-                coverage[drawIter]++;
+    uint32_t covered = 0;
+    for (uint32_t coverTicket : cover) {
+        covered += addTicketToCover(coverage, coverTicket, ticketToGroup, groupToDraw);
+    }
+    return covered;
+}
+
+uint32_t removeTicketFromCover(
+        std::vector<uint32_t> &coverage,
+        uint32_t ticketID,
+        const std::vector<std::vector<uint32_t>> &ticketToGroup,
+        const std::vector<std::vector<uint32_t>> &groupToDraw
+) {
+    uint32_t removed = 0;
+    for (uint32_t group : ticketToGroup[ticketID]) {
+        for (uint32_t draw : groupToDraw[group]) {
+            coverage[draw]--;
+            if (coverage[draw] == 0) {
+                removed++;
             }
         }
     }
-    return coverage;
+    return removed;
 }
 
-uint32_t computeUncoveredDrawCount(const std::vector<uint32_t> &coverage) {
-    uint32_t uncovered = 0;
-    for (uint32_t coverCount : coverage) {
-        if (coverCount == 0) { uncovered++; }
+uint32_t addTicketToCover(
+        std::vector<uint32_t> &coverage,
+        uint32_t ticketID,
+        const std::vector<std::vector<uint32_t>> &ticketToGroup,
+        const std::vector<std::vector<uint32_t>> &groupToDraw
+) {
+    uint32_t added = 0;
+    for (uint32_t group : ticketToGroup[ticketID]) {
+        for (uint32_t draw : groupToDraw[group]) {
+            if (coverage[draw] == 0) {
+                added++;
+            }
+            coverage[draw]++;
+        }
     }
-    return uncovered;
+    return added;
 }

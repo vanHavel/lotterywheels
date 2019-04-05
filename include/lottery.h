@@ -21,14 +21,12 @@ template <uint32_t N> bool verifyTCoverage(
         int t
 );
 
-std::vector<uint32_t> computeDrawCoverage(
+uint32_t computeDrawCoverage(
         const std::vector<uint32_t> &cover,
         const std::vector<std::vector<uint32_t>> &ticketToGroup,
         const std::vector<std::vector<uint32_t>> &groupToDraw,
-        uint32_t numberOfDraws
+        std::vector<uint32_t> &coverage
 );
-
-uint32_t computeUncoveredDrawCount(const std::vector<uint32_t> &coverage);
 
 uint32_t removeTicketFromCover(
         std::vector<uint32_t> &coverage,

@@ -44,8 +44,8 @@ int main() {
     std::mt19937 generator(randomDevice());
     std::uniform_int_distribution<uint32_t> ticketDistribution(0, (uint32_t) allTickets.size() - 1);
     std::uniform_int_distribution<uint32_t> coverDistribution(0, COVER_SIZE - 1);
-    std::uniform_int_distribution<uint32_t> ticketMemberDistribution(0, CONSTANT_K - 1);
-    std::uniform_int_distribution<uint32_t> universeDistribution(0, CONSTANT_N - 1);
+    std::uniform_int_distribution<uint8_t> ticketMemberDistribution(0, CONSTANT_K - 1);
+    std::uniform_int_distribution<uint8_t> universeDistribution(0, CONSTANT_N - 1);
     std::uniform_real_distribution<double> uniformDistribution(0, 1);
 
     std::unordered_set<uint32_t> initialCoverSet;
@@ -54,12 +54,13 @@ int main() {
         initialCoverSet.insert(ticketID);
     }
     std::vector<uint32_t> currentCover(initialCoverSet.begin(), initialCoverSet.end());
-    std::vector<uint32_t> coverage = computeDrawCoverage(currentCover, ticketToGroup, groupToDraw, (uint32_t) allDraws.size());
-    uint32_t uncovered = computeUncoveredDrawCount(coverage);
+    std::vector<uint32_t> coverage(allDraws.size());
+    uint32_t uncovered = computeDrawCoverage(currentCover, ticketToGroup, groupToDraw, coverage);
 
-    bool done = false;
     double temperature = INITIAL_TEMPERATURE;
-    while (!done) {
+    int temperaturesWithoutImprovement = 0;
+    do {
+        uint32_t uncoveredBefore = uncovered;
         for (int i = 0; i < ITERATIONS_PER_TEMPERATURE; ++i) {
             uint32_t oldCost = uncovered;
             uint32_t pickedTicketIndex = coverDistribution(generator);
@@ -92,7 +93,12 @@ int main() {
             }
         }
         temperature *= TEMPERATURE_DECAY;
-        done = true;
-    }
+        if (uncovered >= uncoveredBefore) {
+            temperaturesWithoutImprovement++;
+        }
+        else {
+            temperaturesWithoutImprovement = 0;
+        }
+    } while (uncovered > 0 && temperaturesWithoutImprovement <= 3);
 
 }
