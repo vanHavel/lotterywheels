@@ -49,7 +49,7 @@ template <uint32_t N> std::vector<std::vector<uint32_t>> computeGroupToDrawEdges
 }
 
 
-template <uint32_t N> bool verifyTCoverage(std::vector<std::bitset<N>> samples, std::vector<std::bitset<N>> cover, int t) {
+template <uint8_t N> bool verifyTCoverage(const std::vector<std::bitset<N>> &samples, const std::vector<std::bitset<N>> &cover, int t) {
     for (auto sampleIter = samples.begin(); sampleIter != samples.end(); ++sampleIter) {
         bool found = false;
         for (auto coverIter = cover.begin(); coverIter != cover.end(); ++coverIter) {

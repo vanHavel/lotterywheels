@@ -15,7 +15,7 @@ template <uint32_t N> std::vector<std::vector<uint32_t>> computeDrawToGroupEdges
         const std::unordered_map<std::bitset<N>, uint32_t> &groupToId
 );
 
-template <uint32_t N> bool verifyTCoverage(
+template <uint8_t N> bool verifyTCoverage(
         const std::vector<std::bitset<N>> &samples,
         const std::vector<std::bitset<N>> &cover,
         int t
