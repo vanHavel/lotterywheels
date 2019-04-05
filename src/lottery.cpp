@@ -21,7 +21,7 @@ std::vector<uint32_t> computeDrawCoverage(
     return coverage;
 }
 
-uint32_t computeUncoveredDrawCount(std::vector<uint32_t> coverage) {
+uint32_t computeUncoveredDrawCount(const std::vector<uint32_t> &coverage) {
     uint32_t uncovered = 0;
     for (uint32_t coverCount : coverage) {
         if (coverCount == 0) { uncovered++; }

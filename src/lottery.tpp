@@ -5,6 +5,8 @@
 #ifndef LOTTERY_LOTTERY_TPP
 #define LOTTERY_LOTTERY_TPP
 
+#include "combinatorics.h"
+
 template <uint32_t N> std::vector<std::vector<uint32_t>> computeTicketToGroupEdges(
         const std::vector<std::bitset<N>> &tickets,
         int t,

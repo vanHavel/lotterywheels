@@ -8,6 +8,7 @@
 
 #include "combinatorics.h"
 #include "lottery.h"
+#include "utils.h"
 
 #define CONSTANT_N 5
 #define CONSTANT_K 3
@@ -18,13 +19,7 @@
 #define TEMPERATURE_DECAY 0.99
 #define ITERATIONS_PER_TEMPERATURE 100
 
-template <uint8_t N> std::unordered_map<std::bitset<N>, uint32_t> computeInverseMapping(std::vector<std::bitset<N>> vec) {
-    std::unordered_map<std::bitset<N>, uint32_t> res;
-    for (uint32_t i = 0; i < vec.size(); ++i) {
-        res[vec[i]] = i;
-    }
-    return res;
-}
+
 
 int main() {
     static_assert(CONSTANT_N > 0 && CONSTANT_K > 0 && CONSTANT_T > 0 && CONSTANT_P > 0 && COVER_SIZE > 0);
@@ -72,12 +67,12 @@ int main() {
             uint32_t pickedTicketID = currentCover[pickedTicketIndex];
 
             auto pickedTicketSet = allTickets[pickedTicketID];
-            auto reducedTicketSet = removeIthMember(pickedTicketSet, pickedMemberIndex);
-            auto newTicketSet = addRandomMember(reducedTicketSet, universeDistribution, generator);
-            uint32_t newTicketID = ticketToId[newTicketSet];
+            auto reducedTicketSet = removeIthMember<CONSTANT_N>(pickedTicketSet, pickedMemberIndex);
+            auto newTicketSet = addRandomMember<CONSTANT_N>(reducedTicketSet, universeDistribution, generator);
+            uint32_t newTicketID = ticketToId.at(newTicketSet);
 
-            uncovered += removeTicketFromCover(coverage, pickedTicketID);
-            uncovered -= addTicketToCover(coverage, newTicketID);
+            uncovered += removeTicketFromCover(coverage, pickedTicketID, ticketToGroup, groupToDraw);
+            uncovered -= addTicketToCover(coverage, newTicketID, ticketToGroup, groupToDraw);
             currentCover[pickedTicketIndex] = newTicketID;
 
             assert (uncovered >= 0);
@@ -90,8 +85,8 @@ int main() {
                 double probe = uniformDistribution(generator);
                 if (probe > probability) {
                     // undo move
-                    uncovered += removeTicketFromCover(coverage, newTicketID);
-                    uncovered -= addTicketToCover(coverage, pickedTicketID);
+                    uncovered += removeTicketFromCover(coverage, newTicketID, ticketToGroup, groupToDraw);
+                    uncovered -= addTicketToCover(coverage, pickedTicketID, ticketToGroup, groupToDraw);
                     currentCover[pickedTicketIndex] = pickedTicketID;
                 }
             }
